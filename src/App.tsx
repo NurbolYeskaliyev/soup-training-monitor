@@ -53,12 +53,25 @@ export default function App() {
     setLoading(true);
     const currentRun = runs.find(r => r.id === selectedRunId);
 
+    // Даем браузеру передохнуть через setTimeout, чтобы не фризить UI
     const timer = setTimeout(() => {
       if (currentRun) {
-        setActiveRunData(currentRun.data);
+        let dataToRender = currentRun.data;
+        
+        // Оптимизация для огромных массивов (например, 1M точек): делаем downsampling
+        if (dataToRender.length > 5000) {
+          const factor = Math.ceil(dataToRender.length / 3000);
+          const sampled = [];
+          for (let i = 0; i < dataToRender.length; i += factor) {
+            sampled.push(dataToRender[i]);
+          }
+          dataToRender = sampled;
+        }
+
+        setActiveRunData(dataToRender);
       }
       setLoading(false);
-    }, 150);
+    }, 50);
 
     return () => {
       clearTimeout(timer);
